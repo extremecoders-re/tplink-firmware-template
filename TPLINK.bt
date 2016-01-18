@@ -1,0 +1,54 @@
+//--------------------------------------
+//--- 010 Editor v5.0.1 Binary Template
+//
+// File: TPLINK.bt
+// Author: ExtremeCoders
+// Revision: 001
+// Purpose: Template for TP-Link firmwire files
+//--------------------------------------
+
+struct FIRMWIRE
+{
+    BYTE tpLinkHeader[0x200] <bgcolor=0xa4fab0>;
+
+    struct HEADER
+    {
+        char tagVersion[4]; // Version tag
+        char companyInfo[20]; // Text line for company info
+        char firmwireVersion[14];   // Firmwire version
+        char chipID[6];   // Chip ID
+        char boardID[16]; // Board ID, Router Model
+        char bigEndian[2]; // 1 - Big, 0 - Little
+        if (bigEndian[0] == '1') BigEndian(); else LittleEndian();
+        char totalImageLen[10]; //the size of the image, without the HEADER (fileSize - tplinkheader - header)
+        char cfeAddress[12];  // If not zero, cfe starting address 
+        char cfeLen[10];  // If not zero, cfe size in clear ASCII text. 
+        char rootfsAddress[12];  // If not zero, filesystem starting address 
+        char rootfsLen[10];  // If not zero, filesystem size in clear ASCII text. 
+        char kernelAddress[12];  // If not zero, kernel starting address 
+        char kernelLen[10];  // If not zero, kernel size in clear ASCII text. 
+        char imageSequence[2 * 2];  // Increments everytime an image is flashed 
+        char reserved[256-182];  // Reserved for later use  
+        
+        // All crc32's are negated(bits flipped) : ~crc32
+        struct IMAGEVALIDATIONTOKEN
+        {
+            int32 fullImageCrc32 <format=hex>;
+            int32 rootfsCrc32 <format=hex>;  
+            int32 kernelCrc32 <format=hex>;  
+            char padding[8];
+        }imageValidationToken;
+
+        struct TAGVALIDATIONTOKEN  
+        {
+            int32 headerCrc32 <format=hex>; //header crc
+            char padding[16];
+        }tagValidationToken;
+    
+    }header<bgcolor=cYellow>;
+    
+    BYTE cfeData[Atoi(header.cfeLen)] <bgcolor=0xf043ff>;
+    BYTE rootfsData[Atoi(header.rootfsLen)] <bgcolor=0xf7831b>;
+    BYTE kernelData[Atoi(header.kernelLen)] <bgcolor=0x35786b>;
+        
+}firmwire;
